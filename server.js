@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
-import { watch } from "node:fs";
+import { readFileSync, watch } from "node:fs";
 import fs from "node:fs/promises";
-import http from "node:http";
+import http from "node:https";
 import path from "node:path";
 import repl from "node:repl";
 import { fileURLToPath } from "node:url";
@@ -15,7 +15,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_PATH = path.join(__dirname, "data.json");
 
-const server = http.createServer();
+const opts = {
+  cert: readFileSync(path.join(__dirname, "server.crt")),
+  key: readFileSync(path.join(__dirname, "server.key")),
+};
+const server = http.createServer(opts);
 const ws = new WebSocketServer({ server });
 
 const ev = new EventEmitter();
