@@ -1,0 +1,328 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Schedule</title>
+
+    <style>
+      :root {
+        --bg: #f4f6f8;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --text: #1f2933;
+        --border: #d9e1e8;
+        --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        --radius: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--bg);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          Ubuntu,
+          Cantarell,
+          "Open Sans",
+          sans-serif;
+        color: var(--text);
+        line-height: 1.45;
+      }
+
+      h1 {
+        width: min(1100px, 100%);
+        margin: 24px auto 10px;
+        font-size: 1.35rem;
+        letter-spacing: -0.01em;
+      }
+
+      table {
+        width: min(1100px, 100%);
+        margin: 0 auto 22px;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      thead {
+        background: var(--surface-2);
+      }
+
+      thead th {
+        padding: 14px 12px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      tbody td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.95rem;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fcfdff;
+      }
+
+      tbody tr:hover {
+        background: #eef4ff;
+      }
+
+      td:first-child {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 700px) {
+        body {
+          padding: 12px;
+        }
+
+        h1 {
+          font-size: 1.15rem;
+          margin: 18px auto 8px;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        thead th,
+        tbody td {
+          padding: 10px 10px;
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 420px) {
+        h1 {
+          font-size: 1.05rem;
+        }
+
+        thead th,
+        tbody td {
+          padding: 8px 8px;
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mission Course Schedule</h1>
+    <table id="mission-schedule">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h1>Obstacle Course Schedule</h1>
+    <table id="obstacle-schedule">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+          <th>Lane #</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      /*
+      Format:
+        {
+          "time1": ["Team 1", "Team 2", "Team 3", "Team 4"],
+          "time2": "lunch",
+          "time3": "redo",
+        }
+      */
+      const obstacleSchedule = {
+        "9:00 AM": ["Hello", "Hi", "Greetings", "Hey"],
+        "10:00 AM": "lunch",
+        "11:00 AM": "redo",
+      };
+      /*
+      Format:
+        {
+          "time1": ["Team 1", "Team 2", "Team 3", "Team 4"],
+          "time2": "lunch",
+          "time3": "redo",
+        }
+      */
+      const missionSchedule = {
+        "9:00 AM": ["Hello", "Hi", "Greetings", "Hey"],
+        "10:00 AM": "lunch",
+        "11:00 AM": "redo",
+      };
+
+      function getRandomColor() {
+        const bytes = new Uint8Array(3);
+        crypto.getRandomValues(bytes);
+        return (
+          "#" +
+          Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
+        );
+      }
+      function getTextColor(hex) {
+        hex = hex.replace("#", "");
+
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+
+        const r2 = 255 - r;
+        const g2 = 255 - g;
+        const b2 = 255 - b;
+
+        return (
+          "#" +
+          r2.toString(16).padStart(2, "0") +
+          g2.toString(16).padStart(2, "0") +
+          b2.toString(16).padStart(2, "0")
+        );
+      }
+      const colorMap = new Map();
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const ost = document.getElementById("obstacle-schedule");
+        const mst = document.getElementById("mission-schedule");
+
+        const ostBody = ost.querySelector("tbody");
+        const mstBody = mst.querySelector("tbody");
+
+        for (const time of Object.keys(obstacleSchedule)) {
+          const data = obstacleSchedule[time];
+          if (!Array.isArray(data) && data !== "lunch" && data !== "redo")
+            continue;
+
+          const row = document.createElement("tr");
+          const tD = document.createElement("td");
+          tD.textContent = time;
+          row.appendChild(tD);
+
+          if (data === "lunch") {
+            const col = document.createElement("td");
+            col.textContent = "LUNCH";
+            col.style.backgroundColor = "#ececec";
+            col.style.fontWeight = "bold";
+            col.style.textAlign = "center";
+            col.colSpan = 4;
+            row.appendChild(col);
+            ostBody.appendChild(row);
+            continue;
+          } else if (data === "redo") {
+            const col = document.createElement("td");
+            col.textContent = "REDO";
+            col.style.backgroundColor = "#dfdfdf";
+            col.style.fontWeight = "bold";
+            col.style.textAlign = "center";
+            col.colSpan = 4;
+            row.appendChild(col);
+            ostBody.appendChild(row);
+            continue;
+          }
+
+          for (const team of data) {
+            let color, backgroundColor;
+            if (colorMap.has(team)) {
+              const v = colorMap.get(team);
+              color = v[0];
+              backgroundColor = v[1];
+            } else {
+              color = getRandomColor();
+              backgroundColor = getTextColor(color);
+              colorMap.set(team, [color, backgroundColor]);
+            }
+            const d = document.createElement("td");
+            d.textContent = team;
+            d.style.backgroundColor = backgroundColor;
+            d.style.color = color;
+            row.appendChild(d);
+          }
+          ostBody.appendChild(row);
+        }
+        for (const time of Object.keys(missionSchedule)) {
+          const data = missionSchedule[time];
+          if (!Array.isArray(data) && data !== "lunch" && data !== "redo")
+            continue;
+
+          const row = document.createElement("tr");
+          const tD = document.createElement("td");
+          tD.textContent = time;
+          row.appendChild(tD);
+
+          if (data === "lunch") {
+            const col = document.createElement("td");
+            col.textContent = "LUNCH";
+            col.style.backgroundColor = "#ececec";
+            col.style.fontWeight = "bold";
+            col.style.textAlign = "center";
+            col.colSpan = 4;
+            row.appendChild(col);
+            mstBody.appendChild(row);
+            continue;
+          } else if (data === "redo") {
+            const col = document.createElement("td");
+            col.textContent = "REDO";
+            col.style.backgroundColor = "#dfdfdf";
+            col.style.fontWeight = "bold";
+            col.style.textAlign = "center";
+            col.colSpan = 4;
+            row.appendChild(col);
+            mstBody.appendChild(row);
+            continue;
+          }
+
+          for (const team of data) {
+            let color, backgroundColor;
+            if (colorMap.has(team)) {
+              const v = colorMap.get(team);
+              color = v[0];
+              backgroundColor = v[1];
+            } else {
+              color = getRandomColor();
+              backgroundColor = getTextColor(color);
+              colorMap.set(team, [color, backgroundColor]);
+            }
+            const d = document.createElement("td");
+            d.textContent = team;
+            d.style.backgroundColor = backgroundColor;
+            d.style.color = color;
+            row.appendChild(d);
+          }
+          mstBody.appendChild(row);
+        }
+      });
+    </script>
+  </body>
+</html>
